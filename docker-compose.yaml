@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres
+    build: ./db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0247}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    ports:
+      - "5432:5432"
+
+  user_service:
+    build: ./user_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./user_service:/app
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-0247}@db:5432/${POSTGRES_DB:-postgres}
+    depends_on:
+      - db
+
+  event_service:
+    build: ./event_service
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./event_service:/app
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-0247}@db:5432/${POSTGRES_DB:-postgres}
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+    driver: local
